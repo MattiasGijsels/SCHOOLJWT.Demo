@@ -32,14 +32,14 @@ namespace SCHOOLJWT.Demo.Controllers
 
         [HttpPost("login")]
 
-        public async Task<ActionResult<string>> Login (UserDto request)
+        public async Task<ActionResult<TokenResponseDto>> Login (UserDto request)
 
         {
-            var token = await authService.LoginAsync (request);
-            if (token == null) 
+            var result = await authService.LoginAsync (request);
+            if (result == null) 
                 return BadRequest("Invalid username or password.");
 
-            return Ok(token);
+            return Ok(result);
         }
 
         [Authorize]
@@ -48,11 +48,24 @@ namespace SCHOOLJWT.Demo.Controllers
         {
             return Ok("You are authenticated");
         }
+
         [Authorize(Roles = "Admin")]
         [HttpGet("admin-only")]
         public IActionResult AdminOnlyEndpoint()
         {
             return Ok("You are an Admin now, tell your mum");
         }
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto request)
+        {
+            var result = await authService.RefreshTokenAsync (request);
+            if(result is null || result.AccesToken is null || result.RefreshToken is null)
+                return Unauthorized("Invalid refresh token.");
+
+           return Ok(result);
+        }
+
+
     }
 }
